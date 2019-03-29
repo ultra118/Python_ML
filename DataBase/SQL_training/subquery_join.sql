@@ -78,10 +78,10 @@ from t1;
 /*
 ====================
 서브쿼리
-- Single column Single row subquery
+- Single column Single row subquery -> Sclara subquery
 - Single column Multiple row subquery : 서브쿼리 결과가 여러개면 그에 맞는 연산자로 값 비교
 - Multiple column Multiple row subquery (pair-wise subquery)
-
+- inline view : from 절의 select
 - Corrleated Subquery (상호관련 서브쿼리)
 - Scalar subquery : 값 하나를 리턴하는 서브group by절을 제외한 select문의 모든 절에서 나타날 수 있음
 ====================
@@ -240,3 +240,38 @@ where (col1, col2) in (select col1,col2 from t2); -- 쌍으로 리턴 (100, A), (200,
 
 select *
 from t2;
+
+-- 문제 Single column Multiple row subquery와 부등호 연산을 이해
+
+drop table t1 purge;
+drop table t2 purge;
+
+create table t1 (col1 number);
+insert into t1  values (1000);
+insert into t1  values (2000);
+insert into t1  values (3000);
+
+
+create table t2 (col1 number);
+insert into t2 values (1500);
+insert into t2 values (2000);
+
+select * 
+from t1
+where col1 > any (select col1 from t2); -- (select min(col1) from t1)
+-- any : 하나라도 부등호 성립되는거 있으면
+-- all : 전부 부등호가 성립되면 
+select * 
+from t1
+where col1 > all (select col1 from t2); -- (select max(col1) from t2)
+
+
+-- 문제. Subquery Factoringf를 이해
+-- subquery를 미리 선언해둠으로써 문장을 단순하게 만듬 
+-- 서브쿼리 결과를 임시집함으로 생성해서 성능을 개선함
+with a as (select deptno, round(avg(sal)) dept_avgsal from emp group by deptno),
+     b as (select round(avg(sal)) emp_avg_sal from emp)
+select *
+from emp e, a, b
+where e.deptno = a.deptno
+and a.dept_avgsal = (select max(dept_avgsal) from a);
