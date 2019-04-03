@@ -342,14 +342,96 @@ end;
 /
 exec p3(7788);
 -->[4]
+set serveroutput on
 create or replace procedure p4 (k number)
 is
+    TYPE t1 IS TABLE OF emp.sal%type -- 여러 값을 받기 위한 변수 타입?
+        INDEX BY PLS_INTEGER;
+    s t1; 
 begin
-
+    select sal BULK COLLECT INTO s -- 여러 값을 받을때는 into만 쓰면안됨
+    from emp
+    where deptno = k;
+    
+    dbms_output.put_line(s.first);
+    dbms_output.put_line(s.last);
+    
+    for i in s.first .. s.last loop
+        dbms_output.put_line(s(i));
+    end loop;
 end;
 /
+show errors
+exec p4(10);
+select * from emp;
 -->[5]
+create or replace procedure p5(k number)
+is
+    type emp_table_type is table of emp%rowtype
+        index by pls_integer;
+        
+    t emp_table_type;
+begin
+    select * bulk collect into t
+    from emp
+    where deptno = k;
+    
+    for i in t.first .. t.last loop
+        dbms_output.put_line(t(i).empno||' '||t(i).ename);
+    end loop;
+end;
+/
+exec p5(10)
 -->[6]
+create or replace procedure p6(k number)
+is
+    type rt is record
+    (ename emp.ename%type,
+     job   emp.job%type,
+     sal   emp.sal%type);
+     
+    type emp_table_type is table of rt
+    index by PLS_INTEGER;
+     
+    t emp_table_type;
+begin
+   select ename, job, sal bulk collect into t
+   from emp
+   where deptno = k;
+   
+   for i in t.first .. t.last loop
+        dbms_output.put_line(t(i).ename||' '||t(i).job);
+   end loop;
+end;
+/
+show errors
+exec p6(10)
+----------------------
+-- 문제. 부서와 소속 사원
+----------------------
+create or replace function f0(k number)
+return varchar2
+is
+    TYPE t1 IS TABLE OF emp.ename%type -- 여러 값을 받기 위한 변수 타입?
+        INDEX BY PLS_INTEGER;
+    s t1;
+    total_s varchar2(100);
+begin
+    select ename BULK COLLECT INTO s -- 여러 값을 받을때는 into만 쓰면안됨
+    from emp
+    where deptno = k
+    order by ename;
+    total_s := s(s.first);
+    for i in s.first+1 .. s.last loop
+        total_s := concat(total_s,', '||s(i));
+    end loop;
+    return total_s;
+end;
+/
+show errors;
+
+(select deptno from dept);
+select * from emp;
 ----------------------------------------
 --> getter setter 처럼
 ----------------------------------------
