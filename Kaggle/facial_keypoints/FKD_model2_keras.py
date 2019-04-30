@@ -39,19 +39,26 @@ class CNNmodel:
         self.model = Sequential()
         # 첫번째 layer는 input_shape을 줘야함
         # filter, kernel size, activation, initializers(he_normal은 정규분포로 부터 표본)
-        self.model.add(Conv2D(84, (4, 4), input_shape=(96, 96, 1), use_bias=False, kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.01)))
+        self.model.add(Conv2D(72, (4, 4), input_shape=(96, 96, 1), use_bias=False, kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.01)))
         self.model.add(BatchNormalization(axis=-1))
         self.model.add(Activation('relu'))
         self.model.add(AvgPool2D(pool_size=(2, 2)))
+        
         self.model.add(Conv2D(48, (2, 2), use_bias=False, kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.01)))
         self.model.add(BatchNormalization(axis=-1))
         self.model.add(Activation('relu'))
+        
+        self.model.add(Conv2D(24, (2, 2), use_bias=False, kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.01)))
+        self.model.add(BatchNormalization(axis=-1))
+        self.model.add(Activation('relu'))
+
+        
         self.model.add(Flatten())
         self.model.add(Dropout(0.5))
         self.model.add(Dense(72, kernel_initializer='he_normal', use_bias=True, bias_initializer='he_normal', kernel_regularizer=regularizers.l2(0.01)))
         self.model.add(BatchNormalization(axis=-1))
         self.model.add(Activation('relu'))
-        self.model.add(Dense(48, kernel_initializer='he_normal', use_bias=True, bias_initializer='he_normal', kernel_regularizer=regularizers.l2(0.01)))
+        self.model.add(Dense(24, kernel_initializer='he_normal', use_bias=True, bias_initializer='he_normal', kernel_regularizer=regularizers.l2(0.01)))
         self.model.add(BatchNormalization(axis=-1))
         self.model.add(Activation('relu'))
         self.model.add(Dense(30, kernel_initializer='he_normal', use_bias=True, bias_initializer='he_normal', kernel_regularizer=regularizers.l2(0.01)))
@@ -66,7 +73,7 @@ class CNNmodel:
 xy_data_path = 'C:/python_ML/Kaggle/data/facial/xy_tdata_7000.npz'
 xy_savez_load = np.load(xy_data_path)
 
-model1 = CNNmodel(200)
+model1 = CNNmodel(300)
 model1.build_model()
-model1.training_model('model1_norm_7000_200', xy_savez_load)
+model1.training_model('model2_norm_7000_300', xy_savez_load)
 
