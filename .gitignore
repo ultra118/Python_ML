@@ -3,7 +3,7 @@
 # Edit at https://www.gitignore.io/?templates=python,windows,pycharm,jupyternotebook
 
 # Large file
-./project1/opencv_project/shape_predictor_68_face_landmarks.dat
+./project1/opencv_project/*.dat
 
 
 ### JupyterNotebook ###
