@@ -2,6 +2,10 @@
 # Created by https://www.gitignore.io/api/python,windows,pycharm,jupyternotebook
 # Edit at https://www.gitignore.io/?templates=python,windows,pycharm,jupyternotebook
 
+# Large file
+./project1/opencv_project/*.dat
+
+
 ### JupyterNotebook ###
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
@@ -20,6 +24,7 @@
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+.idea/
 
 # Generated files
 .idea/**/contentModel.xml
