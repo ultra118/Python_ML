@@ -3,7 +3,8 @@
 # Edit at https://www.gitignore.io/?templates=python,windows,pycharm,jupyternotebook
 
 # Large file
-./project1/opencv_project/*.dat
+*.dat
+*.npz
 
 
 ### JupyterNotebook ###
