@@ -26,7 +26,7 @@ def telegram():
     # chat_id = response['message']['from']['id']
     # text = response['message']['text']
         requests.get(f'{api_url}/sendMessage?chat_id={chat_id}&text={text}')
-
+    # 꼭 이렇게 return 해줘야함
     return '', 200
 
 
