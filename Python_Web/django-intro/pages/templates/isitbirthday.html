@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Isitbirthday</title>
+</head>
+<body>
+    {% now "m" as current_month %}
+    {% now "d" as current_day %}
+    TODAY : {{current_month}}M {{current_day}}D
+
+    {% if current_month == '11' and current_day == '25' %}
+        <h1> 예 </h1>
+    {% else %}
+        <h1> 아니오 </h1>
+    {% endif %}
+</body>
+</html>
