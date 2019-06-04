@@ -241,3 +241,124 @@ $ python manage.py startapp pages
 <!-- 변수처럼도 사용 가능 -->
 ```
 
+
+
+## throw-catch page
+
+- `throw.html`
+  - form 으로 catch로 보내는데 django에서는 반드시 url end point에 `/`을 붙여줘야 함
+
+```html
+<form action="/catch/">
+    던질거: <input type="text" name="message">
+    <input type="submit">
+</form>
+```
+
+- `views.py`
+  - request로 `message`라는 이름을 찾아서 받아오고
+  - context에 넣어줘서  `catch.html`에 인자로 넘겨 줌
+
+```python
+def catch(request):
+    message = request.GET.get('message')
+    context = {'message' : message}
+    return render(request, 'catch.html', context )
+```
+
+- `catch.html`
+
+```python
+<h1>Catch Page</h1>
+    <p>메세지 : {{ message }}</p>
+```
+
+
+
+## ASCII-ART
+
+- 특정 단어에 대해 form태그로 날린 단어를 받고
+
+```python
+fonts = requests.get(url='url').text
+```
+
+- requests를 사용해서 url에 대한 소스를 text로 받아옴
+
+```python
+font_list = fonts.split('\n')
+```
+
+- list로 split 시켜놓고 `random.choice(font_list)`통해서 하나 pick
+
+```python
+artii_url = f'http://artii.herokuapp.com/make?text= {word}&font={font}'
+result = requests.get(url=artii_url).text
+context = {'result' : result}
+return render(request, 'result.html', context )
+```
+
+- form 태그로 받은 문자와 pick한 font를 변수를 다시 url로 넘기고 requests로 받아옴
+
+
+
+## Static-Example
+
+- `image`나 `.css`파일 불러와서 `html`을 꾸며줌
+- `pages/static/stylesheets`폴더를 만들어 주고 `style.css`를 넣어 줌
+
+```bash
+/* pages/static/stylesheets/style.css */
+h1 {
+    color: blue;
+}
+
+img {
+    width : 50%;
+}
+```
+
+- `template`에서 stylesheets 사용
+
+```html
+{% load static %}
+<!-- 가장 위쪽에 static load 선언하고 -->
+
+<head>
+    <!-- link tab 을 통해 자동완성 기능 사용할 수 있음 -->
+    <link rel="stylesheet" href="{% static 'stylesheets/style.css' %}" type="text/css">
+</head>
+<body>
+    <!-- static/images/dog1.jpg -->
+    <img src="{% static 'images/dog1.jpg' %}" alt="강아지">
+</body>
+```
+
+## 새로운 app 추가
+
+- utilities app을 만듬
+
+```bash
+python manage.py startapp utilities
+```
+
+- `intro`의 setting.py에 추가해 줌
+- `pages`안에 `urls.py`생성
+  - `intro`안에 있는 `urls.py`를 `pages/urls.py`로 옮겨 줌
+
+- `intro/urls.py`
+
+```python
+urlpatterns = [
+    # pages로 들어오면 include에 있는데로 보냄
+    path('pages/', include('pages.urls')),
+    path('utilities/', include('utilities.urls')),
+    path('admin/', admin.site.urls),
+]
+```
+
+### template issue
+
+- django는 `settings.py`의 `INSTALLED_APPS`을 읽을 때 위에서부터 순차적으로 읽는데 이때 각 app폴더 내의  `template`에서의 `.html`파일들의 이름이 중복되면 뒤 쪽에서 호출하고자하는 `.html`을 호출하지 못하고 중복되는 앞의 template에 해당하는 `.html`을 render해서 호출하게 될 수 있음
+- 이를 해결하기 위해서는 각 APP의 `templates`폴더 아래 해당 APP폴더를 하나 더 생성해 주고 이 밑으로 `.html`파일들을 저장하고
+- 각 `views.py`에서의 render는 `app_name/.html`과 같은 식으로 랜더링한다
