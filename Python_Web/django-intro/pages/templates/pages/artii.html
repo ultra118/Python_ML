@@ -1,14 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Artii</title>
-</head>
-<body>
-    <h1>artii page</h1>
-    <form action="/result/">
+{% extends 'base.html' %}
+
+<!-- base.html의 block을 아래 부분으로 채워서 .html이 그려짐-->
+{% block body %}
+<h1>artii page</h1>
+<form action="/pages/result/">
         영단어를 입력해주세요 : <input type="text" name="word">
         <input type="submit">
-    </form>
-</body>
-</html>
+</form>
+{% endblock %}

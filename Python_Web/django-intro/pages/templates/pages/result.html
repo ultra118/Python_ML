@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Result</title>
-</head>
-<body>
-    <h1>result page Font : {{ font }}</h1>
+{% extends 'base.html' %}
 
-    <pre>{{ result }}</pre>
-</body>
-</html>
+<!-- base.html의 block을 아래 부분으로 채워서 .html이 그려짐-->
+{% block body %}
+<h1>result page Font : {{ font }}</h1>
+
+<pre>{{ result }}</pre>
+{% endblock %}
+

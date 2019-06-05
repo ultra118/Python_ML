@@ -362,3 +362,27 @@ urlpatterns = [
 - django는 `settings.py`의 `INSTALLED_APPS`을 읽을 때 위에서부터 순차적으로 읽는데 이때 각 app폴더 내의  `template`에서의 `.html`파일들의 이름이 중복되면 뒤 쪽에서 호출하고자하는 `.html`을 호출하지 못하고 중복되는 앞의 template에 해당하는 `.html`을 render해서 호출하게 될 수 있음
 - 이를 해결하기 위해서는 각 APP의 `templates`폴더 아래 해당 APP폴더를 하나 더 생성해 주고 이 밑으로 `.html`파일들을 저장하고
 - 각 `views.py`에서의 render는 `app_name/.html`과 같은 식으로 랜더링한다
+
+## html 상속
+
+- `base.html`에 상속해 주기 위한 영역을 설정해 줌
+
+```html
+{% block body %}
+{% endblock %}
+```
+
+- `index.html`에서 상속 받기위한 명시
+- `extends`는 항상 제일 위에 선언
+
+```html
+{% extends 'utilities/base.html' %}
+<!-- base.html의 block을 아래 부분으로 채워서 .html이 그려짐-->
+{% block body %}
+<h1>
+    Welcome to Utilities Index
+</h1>
+{% endblock %}
+```
+
+`setting.py`의 TEMPLATES의 `DIRS`에 경로를 넣어 줌

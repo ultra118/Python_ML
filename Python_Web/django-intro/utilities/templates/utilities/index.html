@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Index</title>
-</head>
-<body>
-    <h1>Utilities Index Page</h1>
-</body>
-</html>
+{% extends 'base.html' %}
+{% load static %}
+
+
+<!-- base.html의 block을 아래 부분으로 채워서 .html이 그려짐-->
+{% block body %}
+<h2>Welcome to Utilities Index</h2>
+<img src="{% static 'utilities/images/table.png' %}" alt="table">
+{% endblock %}
