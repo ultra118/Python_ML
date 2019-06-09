@@ -14,7 +14,7 @@ $ django-admin startproject crud .
 
 ## app 추가해주기
 
-- app 만들기
+- app 만들기 
 
 ```bash
 $ python manage.py startapp boards
