@@ -1,0 +1,19 @@
+{% extends 'boards/base.html' %}
+
+{% block body %}
+<h1>DETAIL PAGE</h1>
+    <p> board id : {{ board.id }}</p>
+    <p> board title : {{ board.title }}</p>
+    <p> board created at: {{ board.created_at}}</p>
+    <hr/>
+    <p> board content : {{ board.content }}</p>
+    <hr/>
+    <a href="/boards/">BACK</a>
+    <!--<a href="/boards/{{ board.id }}/delete/">[글 삭제하기]</a><br>-->
+    <form action="/boards/{{ board.id }}/delete/" method="post">
+        {% csrf_token %}
+        <input class="btn btn-danger" type="submit" value="삭제하기">
+    </form>
+    
+
+{% endblock %}
