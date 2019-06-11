@@ -1,0 +1,16 @@
+{% extends 'boards/base.html' %}
+
+{% block body %}
+    <h1> EDIT </h1>
+    <!--<form action="/boards/{{ board.id }}/update/" method="post">-->
+    <form action="{% url 'boards:edit' board.id %}" method="post">
+        {% csrf_token %}
+        <label for="title">Title</label><br/>
+        <input name="title" id="title" type="text" value="{{ board.title}}"><br/>
+        <label for="content">Content</label><br/>
+        <textarea name="content" id="content">{{ board.content }}</textarea><br/>
+        <input class="btn btn-success" type="submit" value="수정하기">
+    </form>
+    <!--<a href="/boards/">BACK</a>-->
+    <a href="{% url 'boards:index' %} ">BACK</a>
+{% endblock %}

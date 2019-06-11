@@ -10,10 +10,13 @@
     <hr/>
     <a href="/boards/">BACK</a>
     <!--<a href="/boards/{{ board.id }}/delete/">[글 삭제하기]</a><br>-->
-    <form action="/boards/{{ board.id }}/delete/" method="post">
+    <!--<form action="/boards/{{ board.id }}/delete/" method="post">-->
+    <form action="{% url 'boards:delete' board.id %}" method="post">
         {% csrf_token %}
         <input class="btn btn-danger" type="submit" value="삭제하기">
     </form>
+    <!--<a href="/boards/{{ board.id }}/edit">[수정하기]</a>-->
+    <a href="{% url 'boards:edit' board.id %}">[수정하기]</a>
     
 
 {% endblock %}
