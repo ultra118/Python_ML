@@ -1,0 +1,31 @@
+{% extends 'movies/base.html' %}
+
+{% block body %}
+    <h1>CREATE</h1>
+    <form action="{% url 'movies:create' %}" method="post">
+        {% csrf_token %}
+        <label for="title">Title</label><br/>
+        <input name="title" id="title" type="text"><br/>
+        <label for="title_origin">Title_Origin</label><br/>
+        <input name="title_origin" id="title_origin" type="text"><br/>
+        <label for="vote_count">Vote_Count</label><br/>
+        <input name="vote_count" id="vote_count" type="number"><br/>
+        <label for="open_date">Open_Date</label><br/>
+        <input name="open_date" id="open_date" type="date"><br/>
+        <label for="genre">Genre</label><br/>
+        <input name="genre" id="genre" type="text"><br/>
+        <label for="score">Score</label><br/>
+        <input name="score" id="score" type="number"><br/>
+        <label for="poster_url">Poster_Url</label><br/>
+        <input name="poster_url" id="poster_url" type="text"><br/>
+        <label for="description">Description</label><br/>
+        <textarea name="description" id="description"></textarea><br/>
+
+        <input class="btn btn-success" type="submit" value="정보생성">
+
+    </form>
+    <!--<a href="/boards/">BACK</a>-->
+    <a href="{% url 'movies:index' %} ">BACK</a>
+{% endblock %}
+
+

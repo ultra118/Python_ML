@@ -1,0 +1,17 @@
+{% extends 'movies/base.html' %}
+
+{% block body %}
+    <h1>DETAIL</h1>
+    <hr/>
+    <p> movie id : {{ movie.id }}</p>
+    <p> movie title : {{ movie.title }}</p>
+    <p> movie vote_count : {{ movie.vote_count}}</p>
+    <p> movie open_date : {{ movie.open_date}}</p>
+    <p> movie genre : {{ movie.genre}}</p>
+    <p> movie score : {{ movie.score}}</p>
+    <p> movie poster_url : <a href="{{ movie.poster_url}}">{{ movie.poster_url}}</a></p>
+    <p> movie description : {{ movie.description}}</p>
+    <hr/>
+{% endblock %}
+
+
