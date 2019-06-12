@@ -643,8 +643,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 board = get_object_or_404(Board, id=id)
 ```
-
-### 댓글 추가
+## 댓글 추가
+### 댓글 db 추가
 
 - 댓글 DB를 추가 해줌
 - `models.py`에`Comment` class 추가
@@ -671,5 +671,210 @@ $ python manage.py makemigrations
 
 ```bash
 $ python manage.py migrate
+```
+
+### django-extensions
+
+```bash
+$ pip install django-extensions
+```
+
+### shell_plus
+
+- 다음과 같이 django shell을 사용할 수 있는데
+
+```bash
+$ python manage.py shell
+```
+
+- django-extensions를 받으면 `shell_plus`를 사용할 수 있음
+- project 파일 `seeting.py`의  `INSTALLED_APPS`에 app추가해 줘야함
+
+```python
+INSTALLED_APPS = [
+    # Local Apps
+    'boards',
+    # 3rd party Apps
+    'django_extensions',
+	...
+
+```
+
+- `shell_plus`쓰면 model들을 알아서 import 해줌
+
+```bash
+$ python manage.py shell_plus
+# Shell Plus Model Imports
+from boards.models import Board, Comment
+from django.contrib.admin.models import LogEntry
+from django.contrib.auth.models import Group, Permission, User
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.sessions.models import Session
+# Shell Plus Django Imports
+from django.core.cache import cache
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.db import transaction
+from django.db.models import Avg, Case, Count, F, Max, Min, Prefetch, Q, Sum, When, Exi
+sts, OuterRef, Subquery
+from django.utils import timezone
+from django.urls import reverse
+```
+
+- `model`들을 `import`하지 않았는데 알아서 로드되는걸 볼 수 있음
+
+```bash
+In [2]: boards = Board.objects.all()
+
+In [3]: boards
+Out[3]: <QuerySet [<Board: 9. title9sdfsdf>, <Board: 13. sdgsdgsg>, <Board: 15. post_ne
+w>, <Board: 16. ttwet>]>
+In [4]: comment = Comment.objects.all()
+
+In [5]: comment
+Out[5]: <QuerySet []>
+
+```
+
+### 댓글 등록하기
+
+```python
+board = Board.objects.get(pk=16)
+comment = Comment()
+comment.content = '첫 번째 댓글'
+# 댓글 fk까지 등록하고 세이브
+comment.board = board
+comment.save()
+comment
+Out[18]: <Comment: Comment object (1)>
+comment.board
+Out[19]: <Board: 16. ttwet>
+# fk의 key값은 _id로 가지고올 수 있음
+comment.board_id
+Out[20]: 16
+# fk에 대한 다른 attr로 접근 가능
+comment.board.title
+Out[25]: 'ttwet'
+comment.board.content
+Out[23]: 'ssdgsdg'
+
+# id를 직접 줘서 저장할 수 있음
+board = Board.objects.get(pk=9)
+comment = Commnet()
+comment.content = '두 번째 댓글'
+# comment.board_id = 9
+comment.board_id = baord.id
+comment.board
+Out[51]: <Board: 9. title9sdfsdf>
+comment.save()
+
+# 생성하면서 할당
+board = Board.objects.get(pk=13)
+comment = Comment(board_id = board.id, content = '네 번째 댓글')
+comment.save()
+```
+
+### board에서 댓글가져오기
+
+```python
+board = Board.objects.get(pk=13)
+comments = board.comment_set.all()
+comments
+Out[24]: <QuerySet [<Comment: <Board(16) : Comment : 1 - 첫 번째 댓글...>>]>
+```
+
+### admin에 등록
+
+- `admin.py`
+
+```python
+from django.contrib import admin
+from .models import Board, Comment
+
+# Register your models here.
+
+admin.site.register(Board)
+admin.site.register(Comment)
+```
+
+- admin 접속 - `/admin`
+
+```bash
+$ python manage.py runserver
+```
+
+### 댓글 등록하기
+
+- `urls.py`에 path 등록
+
+```python
+urlpatterns = [
+    ...
+    # Comments
+    path('<int:board_id>/comment/', views.comment_create, name='comment_create')
+]
+```
+
+- `views.py`에 
+
+```python
+from .models import Board, Comment
+
+def comment_create(request, board_id):
+    content = request.POST.get('content')
+    comment = Comment(content=content, board_id=board_id)
+    comment.save()
+    print(comment)
+    return redirect('boards:detail', board_id)
+```
+
+### detail page에 댓글등록
+
+- `views.py`에서
+
+```python
+@require_http_methods(['GET'])
+def detail(request, board_id):
+    ...
+    board = get_object_or_404(Board, id=board_id)
+    # 댓글들을 id의 역순으로 가지고옴
+    comments = board.comment_set.order_by('-id').all()
+    context = {'board' : board, 'comments': comments}
+    return render(request, 'boards/detail.html', context)
+
+@require_http_methods(['POST'])
+def comment_create(request, board_id):
+    content = request.POST.get('content')
+    comment = Comment(content=content, board_id=board_id)
+    comment.save()
+    print(comment)
+
+
+    # 댓글 생성하는 로직
+    return redirect('boards:detail', board_id)
+```
+
+- `detail.html`
+
+```html
+{% extends 'boards/base.html' %}
+
+{% block body %}
+<h1>DETAIL PAGE</h1>
+    ...
+    <form action="{% url 'boards:comment_create' board.id %}" method="post">
+        {% csrf_token %}
+        <input type="text" name="content" placeholder="댓글을 입력해주세요">
+        <input type="submit" value="댓글쓰기">
+    </form>
+    ...
+    <hr/>
+    {% for comment in comments %}
+        <li>{{ comment.content }}</li>
+	{% empty %}
+        <p> 댓글이 하나도 없습니다. </p>
+    {% endfor %}
+
+{% endblock %}
 ```
 

@@ -19,3 +19,6 @@ class Comment(models.Model):
     # 게시글이 지워졌을때 그 게시글에 귀속되어있는 댓글을 다 지울지, 아니면 어떤식으로든 저장할지
     # on_delte 통해 지정해줌 CASCADE -> 지울 때 같이 지움 DO_NOTHING -> 안 지움
     board = models.ForeignKey(Board, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'<Board({self.board_id}) : Comment : {self.id} - {self.content}>'

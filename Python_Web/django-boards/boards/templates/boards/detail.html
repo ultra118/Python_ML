@@ -8,15 +8,35 @@
     <hr/>
     <p> board content : {{ board.content }}</p>
     <hr/>
+    <form action="{% url 'boards:comment_create' board.id %}" method="post">
+        {% csrf_token %}
+        <input type="text" name="content" placeholder="댓글을 입력해주세요">
+        <input type="submit" value="댓글쓰기">
+
+    </form>
+    <hr/>
     <a href="/boards/">BACK</a>
     <!--<a href="/boards/{{ board.id }}/delete/">[글 삭제하기]</a><br>-->
     <!--<form action="/boards/{{ board.id }}/delete/" method="post">-->
     <form action="{% url 'boards:delete' board.id %}" method="post">
         {% csrf_token %}
-        <input class="btn btn-danger" type="submit" value="삭제하기">
+        <input class="btn btn-danger" type="submit" value="게시글 삭제하기">
     </form>
     <!--<a href="/boards/{{ board.id }}/edit">[수정하기]</a>-->
     <a href="{% url 'boards:edit' board.id %}">[수정하기]</a>
-    
+    <hr/>
+
+    {% for comment in comments %}
+        <li>{{ comment.content }}
+        <form action="{% url 'boards:comment_delete' board.id comment.id %}" method="post">
+        {% csrf_token %}
+            <input class="btn btn-warning" type="submit" value="댓글 삭제하기">
+        </form>
+        </li>
+        <hr/>
+
+    {% empty %}
+        <p> 댓글이 하나도 없습니다. </p>
+    {% endfor %}
 
 {% endblock %}
