@@ -878,3 +878,217 @@ def comment_create(request, board_id):
 {% endblock %}
 ```
 
+## image 추가
+
+- `boards/models.py`에 `ImageField()`추가
+- 이미지는 있어도 되고 없어도 되기때문에 `blank=True`
+
+```python
+image = models.ImageField(blank=True)
+```
+
+- `make migrations`
+
+  ```bash
+  python manage.py makemigrations
+  ```
+
+- `migrate`
+
+  ```bash
+  python manage.py migrate
+  ```
+
+- `Pillow`받아줘야함
+
+  ```bash
+  pip install Pillow
+  ```
+
+- `views.py `수정
+
+  ```python
+  @require_http_methods(['GET','POST'])
+  def edit(request, board_id):
+      #board = Board.objects.get(id=id)
+      board = get_object_or_404(Board, id=board_id)
+      if request.method == 'GET':
+          # GET - edit
+          context = {'board': board}
+          return render(request, 'boards/edit.html', context)
+      else:
+          # POST - update
+          title = request.POST.get('title')
+          content = request.POST.get('content')
+          image = request.FILES.get('image')
+          board.title = title
+          board.content = content
+          board.image = image
+          board.save()
+          return redirect('boards:detail', board_id)
+  ```
+
+  
+
+
+
+- `new.html` 수정
+
+  - 이미지 타입이 들어올 수 있게 html에서 필터링 - 완전히 막지는 못함
+  - 파일들까지 form에서 같이 보내기때문에 `multipart/form-data`
+    - application-...는 기본 default
+    - text-plain은 문자 그대로를 보내줌
+
+  ```html
+  {% extends 'boards/base.html' %}
+  
+  {% block body %}
+      <h1> NEW </h1>
+      <!--<form action="/boards/create/" method="post">-->
+      <form action="{% url 'boards:new' %}" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          ...
+          <input type="file" name="image" accept="image/*"><br/>
+          <input type="submit">
+      </form>
+      <!--<a href="/boards/">BACK</a>-->
+      <a href="{% url 'boards:index' %}">BACK</a>
+  
+  {% endblock %}
+  ```
+
+- `detail.html`
+
+  - `board.image.url `로 url정보
+  - `board.image.name`으로 파일 이름을 가지고올 수 있음
+
+  ```html
+  {% extends 'boards/base.html' %}
+  
+  {% block body %}
+  <h1>DETAIL PAGE</h1>
+      <p> board id : {{ board.id }}</p>
+      <p> board title : {{ board.title }}</p>
+      <p> <img src="{{ board.image.url }}" alt="{{ board.image.name }}"> </p>
+      ...
+  {% endblock %}
+  ```
+
+  
+
+## 이미지 저장경로에 대한 설정
+
+- `curd/settings.py`의 MEDIA_URL 등록해주도록함
+- media파일에 접근하기위한 url
+
+```python
+MEDIA_URL ='/media/'
+```
+
+- `media root`설정
+
+```python
+MEDIA_ROOT = os.path.join(BASE_DIR,'media')
+```
+
+- `curd/urls.py`
+
+  ```python
+  ...
+  from django.conf import settings
+  from django.conf.urls.static import static
+  
+  
+  urlpatterns = [
+      path('boards/', include('boards.urls')),
+      path('admin/', admin.site.urls),
+  ]
+  
+  # domain.com/media/smaple.jpg
+  urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+  ```
+
+- 이미지 파일 수정할 수 있게
+
+- `edit.html`
+
+  ```python
+  {% extends 'boards/base.html' %}
+  
+  {% block body %}
+      <h1> EDIT </h1>
+      {% if board.image %}
+      <img src="{{ board.image.url }}" alt="{{ board.image.name }}">
+      {% endif %}
+  
+      <!--<form action="/boards/{{ board.id }}/update/" method="post">-->
+      <form action="{% url 'boards:edit' board.id %}" method="post" enctype=multipart/form-data>
+          ...
+          <input type="file" name="image" accept="image/*"><br/>
+          <textarea name="content" id="content">{{ board.content }}</textarea><br/>
+          <input class="btn btn-success" type="submit" value="수정하기">
+      </form>
+      <!--<a href="/boards/">BACK</a>-->
+      <a href="{% url 'boards:index' %} ">BACK</a>
+  {% endblock %}
+  ```
+
+- `views.py`
+
+## image 처리
+
+- Piloow설치
+
+```bash
+pip install Pillow
+```
+
+- 이미지 처리 위한 pkg install
+
+```bash
+pip install pilkit
+```
+
+```bash
+pip install django-imagekit
+```
+
+- `curd/settings.py`
+  - imagekit등록
+
+```python
+INSTALLED_APPS = [
+    # Local Apps
+    'boards',
+    # 3rd party Apps
+    'django_extensions',
+    'imagekit',
+
+    # Django Apps
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
+```
+
+- `boards/models.py`
+
+```pyhton
+from imagekit.models import ProcessedImageField
+from pilkit.processors import Thumbnail
+
+class Board(models.Model):
+    ...
+    #image = models.ImageField(blank=True)
+    image = ProcessedImageField(
+        upload_to='boards/images', # 저장위치 (media 이후의 경로)
+        processors=[Thumbnail(200, 300)],
+        format="JPEG",
+        options={'quality':90},
+    )
+    ...
+```
+

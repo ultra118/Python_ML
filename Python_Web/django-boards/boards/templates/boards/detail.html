@@ -4,6 +4,11 @@
 <h1>DETAIL PAGE</h1>
     <p> board id : {{ board.id }}</p>
     <p> board title : {{ board.title }}</p>
+    {% if board.image %}
+        <p> <img src="{{ board.image.url }}" alt="{{ board.image.name }}"> </p>
+    {% else %}
+        <p> 이미지가 없습니다. </p>
+    {% endif %}
     <p> board created at: {{ board.created_at}}</p>
     <hr/>
     <p> board content : {{ board.content }}</p>

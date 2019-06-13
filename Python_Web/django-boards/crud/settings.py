@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'boards',
     # 3rd party Apps
     'django_extensions',
+    'imagekit',
 
     # Django Apps
     'django.contrib.admin',
@@ -124,3 +125,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# media에 접근하는 url
+MEDIA_URL ='/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR,'media')
+
+# BASE_DIR : project root를 뜻함

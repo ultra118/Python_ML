@@ -23,7 +23,8 @@ def new(request):
         # create-POST
         title = request.POST.get('title')
         content = request.POST.get('content')
-        board = Board(title=title, content=content)
+        image= request.FILES.get('image')
+        board = Board(title=title, content=content, image=image)
         board.save()
         return redirect('boards:detail', board.id)
 
@@ -87,8 +88,10 @@ def edit(request, board_id):
         # POST - update
         title = request.POST.get('title')
         content = request.POST.get('content')
+        image = request.FILES.get('image')
         board.title = title
         board.content = content
+        board.image = image
         board.save()
         return redirect('boards:detail', board_id)
 

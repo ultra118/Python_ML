@@ -3,12 +3,13 @@
 {% block body %}
     <h1> NEW </h1>
     <!--<form action="/boards/create/" method="post">-->
-    <form action="{% url 'boards:new' %}" method="post">
+    <form action="{% url 'boards:new' %}" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <label for="title">Title</label><br/>
         <input name="title" id="title" type="text"><br/>
         <label for="content">Content</label><br/>
         <textarea name="content" id="content"></textarea><br/>
+        <input type="file" name="image" accept="image/*"><br/>
         <input type="submit">
     </form>
     <!--<a href="/boards/">BACK</a>-->

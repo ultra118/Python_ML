@@ -2,12 +2,17 @@
 
 {% block body %}
     <h1> EDIT </h1>
+    {% if board.image %}
+    <img src="{{ board.image.url }}" alt="{{ board.image.name }}">
+    {% endif %}
+
     <!--<form action="/boards/{{ board.id }}/update/" method="post">-->
-    <form action="{% url 'boards:edit' board.id %}" method="post">
+    <form action="{% url 'boards:edit' board.id %}" method="post" enctype=multipart/form-data>
         {% csrf_token %}
         <label for="title">Title</label><br/>
         <input name="title" id="title" type="text" value="{{ board.title}}"><br/>
         <label for="content">Content</label><br/>
+        <input type="file" name="image" accept="image/*"><br/>
         <textarea name="content" id="content">{{ board.content }}</textarea><br/>
         <input class="btn btn-success" type="submit" value="수정하기">
     </form>
