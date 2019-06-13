@@ -22,10 +22,11 @@
         <textarea name="description" id="description"></textarea><br/>
 
         <input class="btn btn-success" type="submit" value="정보생성">
+        <a href="{% url 'movies:index' %}" class="btn btn-primary">목록</a>
 
     </form>
     <!--<a href="/boards/">BACK</a>-->
-    <a href="{% url 'movies:index' %} ">BACK</a>
+
 {% endblock %}
 
 

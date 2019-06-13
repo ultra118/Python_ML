@@ -3,15 +3,27 @@
 {% block body %}
     <h1>DETAIL</h1>
     <hr/>
-    <p> movie id : {{ movie.id }}</p>
-    <p> movie title : {{ movie.title }}</p>
-    <p> movie vote_count : {{ movie.vote_count}}</p>
-    <p> movie open_date : {{ movie.open_date}}</p>
-    <p> movie genre : {{ movie.genre}}</p>
-    <p> movie score : {{ movie.score}}</p>
-    <p> movie poster_url : <a href="{{ movie.poster_url}}">{{ movie.poster_url}}</a></p>
-    <p> movie description : {{ movie.description}}</p>
+    <h2>
+        <p><b>{{ movie.title }} </b></p>
+    </h2>
+    <p> 장르 : {{ movie.genre}}</p>
+    <p> 평점 수 : {{ movie.vote_count}}</p>
+    <p> 개봉일 : {{ movie.open_date}}</p>
+
+    <p> 평점 : {{ movie.score}}</p>
+    <img src="{{ movie.poster_url }}" alt="영화 포스터">
+    <!--<p> movie poster_url : <a href="{{ movie.poster_ovievierl}}">{{ movie.poster_url}}</a></p>-->
+    <p> 소개 : {{ movie.description}}</p>
     <hr/>
+    <div class="btn-group btn-group-justified">
+        <a href="{% url 'movies:index' %}" class="btn btn-primary">목록</a>
+        <a href="{% url 'movies:update' movie.id %}" class="btn btn-info">수정</a>
+        <form action="{% url 'movies:delete' movie.id %}" method="post">
+            {% csrf_token %}
+            <input type="submit" class="btn btn-danger" value ='삭제'>
+        </form>
+    </div>
+
 {% endblock %}
 
 

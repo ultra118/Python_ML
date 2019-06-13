@@ -1,0 +1,30 @@
+{% extends 'movies/base.html' %}
+
+{% block body %}
+    <h1>UPDATE</h1>
+    <hr/>
+    <form action="{% url 'movies:update' movie.id %}" method="post">
+        {% csrf_token %}
+        <label for="title">Title</label><br/>
+        <input name="title" id="title" type="text" value="{{ movie.title }}"><br/>
+        <label for="title_origin">Title_Origin</label><br/>
+        <input name="title_origin" id="title_origin" type="text" value="{{ movie.title_origin }}"><br/>
+        <label for="vote_count">Vote_Count</label><br/>
+        <input name="vote_count" id="vote_count" type="number" value="{{ movie.vote_count }}"><br/>
+        <label for="open_date">Open_Date</label><br/>
+        <input name="open_date" id="open_date" type="date" value="{{ movie.open_date}}"><br/>
+        <label for="genre">Genre</label><br/>
+        <input name="genre" id="genre" type="text" value="{{ movie.genre }}"><br/>
+        <label for="score">Score</label><br/>
+        <input name="score" id="score" type="number" value="{{ movie.score }}"><br/>
+        <label for="poster_url">Poster_Url</label><br/>
+        <input name="poster_url" id="poster_url" type="text" value="{{ movie.poster_url}}"><br/>
+        <label for="description">Description</label><br/>
+        <textarea name="description" id="description">{{  movie.description }}</textarea><br/>
+
+        <input class="btn btn-warning" type="submit" value="정보수정">
+
+    </form>
+{% endblock %}
+
+

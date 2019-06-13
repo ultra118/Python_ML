@@ -4,13 +4,16 @@
     <h1>Welcome to movies</h1>
     <hr/>
     <h2>
-        <a href="{% url 'movies:create' %}">새 영화 등록</a>
+        <a href="{% url 'movies:create' %}" class="btn btn-primary btn-lg">새 영화 등록</a>
     </h2>
     <hr/>
     {% for movie in movies %}
-        <p>movie title / score :
-            <a href="{% url 'movies:detail' movie.id %}">{{ movie.title }}</a>
-            / {{ movie.score }}</p>
+        <p><b> {{ movie.title }}</b></p>
+        <p>개봉일 : {{ movie.open_date }}</p>
+        <p>장르: {{ movie.genre }}</p>
+        <p>평점: {{ movie.score }}</p>
+        <a href="{% url 'movies:detail' movie.id %}" class="btn btn-info" >상세보기</a>
+        <hr/>
     {% endfor %}
 {% endblock %}
 
