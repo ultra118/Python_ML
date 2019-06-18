@@ -1,0 +1,31 @@
+{% extends 'boards/base.html' %}
+{% load bootstrap4 %}
+
+{% block body %}
+    {% if request.resolver_match.url_name == 'create' %}
+        <h1>새로운 게시글 작성</h1>
+    <!--action을 비워두면 현재 주소로 똑같이 요청을 보냄-->
+    <!--create로 들어오면 create로 보내고 update로 들어오면 update로 보내게됨-->
+    <!--그니까 이름을 form.html로 바꿔주도록 함-->
+    {% else %}
+        <h1>게시글 수정</h1>
+    {% endif %}
+    <form action="" method="post">
+        {% csrf_token %}
+        <!--<label for="title">Title</label><br/>-->
+        <!--<input type="text" id="title" name="title"><br/>-->
+        <!--<label for="content">Content</label><br/>-->
+        <!--<textarea name="content" id="content" ></textarea><br/>-->
+        <!--form안에 데이터가 있으면 알아서 채워주는?-->
+        {% bootstrap_form form layout='horizontal' %}
+        {% buttons submit="Submit" reset="Cancel" %}
+        {% endbuttons %}
+        <!--{{ form.as_p }}-->
+        <!--<input type="submit" value="작성하기">-->
+    </form>
+    {% if request.resolver_match.url_name == 'create' %}
+        <a href="{% url 'boards:index' %}">[뒤로가기]</a>
+    {% else %}
+        <a href="{% url 'boards:detail' board_pk %}">[뒤로가기]</a>
+    {% endif %}
+{% endblock %}

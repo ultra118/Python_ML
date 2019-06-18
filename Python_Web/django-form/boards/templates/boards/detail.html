@@ -1,0 +1,18 @@
+{% extends 'boards/base.html' %}
+
+{% block body %}
+    <h1>Detail</h1>
+    <hr/>
+    <p>글 번호 : {{ board.pk }}</p>
+    <p>글 제목 : {{ board.title }}</p>
+    <p>글 내용 : {{ board.content }}</p>
+    <p>글 생성시각 : {{ board.created_at }} </p>
+    <p>글 수정시각 : {{ board.updated_at }}</p>
+    <hr/>
+    <form action="{% url 'boards:delete' board.pk %}" method="post">
+        {% csrf_token %}
+        <input type="submit" value="삭제하기">
+    </form>
+    <a href="{% url 'boards:update' board.pk %}">[수정하기]</a>
+    <a href="{% url 'boards:index' %}">[뒤로가기]</a>
+{% endblock %}
