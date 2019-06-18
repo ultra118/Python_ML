@@ -378,7 +378,7 @@ def create(request):
 
     Board.objects.create(title=title, content=content)
 
-    return render(request, 'boards/create.html' )
+    return render(request, form.html )
 ```
 
 - `boards/templates/boards/.html`
