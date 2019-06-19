@@ -24,8 +24,8 @@
         <!--<input type="submit" value="작성하기">-->
     </form>
     {% if request.resolver_match.url_name == 'create' %}
-        <a href="{% url 'boards:index' %}">[뒤로가기]</a>
+        <a class="btn btn-secondary" href="{% url 'boards:index' %}">뒤로가기</a>
     {% else %}
-        <a href="{% url 'boards:detail' board_pk %}">[뒤로가기]</a>
+        <a class="btn btn-secondary" href="{% url 'boards:detail' board_pk %}">뒤로가기</a>
     {% endif %}
 {% endblock %}

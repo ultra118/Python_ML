@@ -511,3 +511,146 @@ board.user = request.user
 board.save()
 ```
 
+## comment 추가
+
+- `boards/models.py`에 추가
+
+```python
+from django.db import models
+from django.conf import settings
+
+
+# Create your models here.
+class Board(models.Model):
+    title = models.CharField(max_length=20)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # 참조하고있는유저, on_delte=유저가 삭제되면 board를 어떻게 할지(CASCADE는 다 지워줌)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.pk}. {self.title}'
+
+
+class Comment(models.Model):
+    content = models.CharField(max_length=100)
+    # auto=자동 now=현시점 add=add되는 시점으로
+    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    board = models.ForeignKey(Board, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.content
+```
+
+### migrate
+
+```bash
+$ python manage.py makemigrations
+```
+
+```bash
+$ python manage.py migrate
+```
+
+### @require
+
+``` python
+from django.views.decorators.http import require_POST, require_GET, require_http_methods
+from django.contrib.auth.decorators import login_required
+```
+
+- 여러 require통해서 특정 method만 받거나 login되어있는지 등으로 받음
+
+### admin page 꾸미기
+
+- `boards/admin.py`
+
+```python
+from django.contrib import admin
+from .models import Board, Comment
+
+
+# Register your models here.
+@admin.register(Board)
+class BoardAdmin(admin.ModelAdmin):
+    list_display = ('title', 'content', 'created_at', 'updated_at', )
+    # 수정할 수 없는 필드영역 지정
+    readonly_fields = ['created_at', 'updated_at', ]
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('content', 'created_at', )
+    readonly_fields = ['created_at', ]
+```
+
+## M:N 통한 '좋아요 '기능
+
+- model build - `related_name `추가
+
+```python
+from django.db import models
+from django.conf import settings
+
+
+# Create your models here.
+class Board(models.Model):
+    title = models.CharField(max_length=20)
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # 참조하고있는유저, on_delte=유저가 삭제되면 board를 어떻게 할지(CASCADE는 다 지워줌)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    # django usermodel - settings.AUTH_USER_MODEL
+    like_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        # 역참조 할 수 있게
+        related_name='like_boards',
+        # 반드시 필요한건 아님
+        blank=True,
+    )
+
+    def __str__(self):
+        return f'{self.pk}. {self.title}'
+
+
+class Comment(models.Model):
+    content = models.CharField(max_length=100)
+    # auto=자동 now=현시점 add=add되는 시점으로
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    board = models.ForeignKey(Board, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.content
+```
+
+
+
+```python
+# 내가 지금까지 작성한 게시글
+user.board_set.all()
+
+# 내가 좋아요 한 게시글
+user.like_boards.all()
+```
+
+### font awesome
+
+- base.html head부분에 key src 추가해주기
+
+```html
+#활용
+<a class="text-danger" href="{% url 'boards:like' board.pk %}">
+    <!--좋아요 누른 유저면-->
+    {% if user in board.like_users.all %}
+    <i class="fas fa-heart"></i>
+    {% else %}
+    <i class="far fa-heart"></i>
+    {% endif %}
+</a>
+```
+

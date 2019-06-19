@@ -1,4 +1,5 @@
 {% extends 'boards/base.html' %}
+{% load bootstrap4 %}
 
 {% block body %}
     <h1>Detail</h1>
@@ -8,11 +9,51 @@
     <p>글 내용 : {{ board.content }}</p>
     <p>글 생성시각 : {{ board.created_at }} </p>
     <p>글 수정시각 : {{ board.updated_at }}</p>
+    <a class="text-danger" href="{% url 'boards:like' board.pk %}">
+        <!--좋아요 누른 유저면-->
+        {% if user in board.like_users.all %}
+            <i class="fas fa-heart"></i>
+        {% else %}
+            <i class="far fa-heart"></i>
+        {% endif %}
+    </a>
+    <strong>
+        {{ board.like_users.all | length }} 명이 좋아합니다.
+    </strong>
     <hr/>
-    <form action="{% url 'boards:delete' board.pk %}" method="post">
+    {% for comment in comments %}
+    <div>
+        <strong>{{ comment.user }}</strong>
+        <span class="ml-3">{{ comment.content }}</span>
+        {% if user == comment.user %}
+        <form class="d-inline ml-4" action="{% url 'boards:comments_delete' board.pk comment.pk %}" method="post">
+            {% csrf_token %}
+            <input class="btn btn-link text-danger" type="submit" value="삭제">
+        </form>
+        {% endif %}
+    </div>
+    {% empty %}
+    <p> 아직 댓글이 없습니다. </p>
+    {% endfor %}
+    <br/>
+    {% if user.is_authenticated %}
+    <form action="{% url 'boards:comments_create' board.pk %}" method="post">
         {% csrf_token %}
-        <input type="submit" value="삭제하기">
+        {% bootstrap_form comment_form %}
+        <input class="btn btn-primary" type="submit" value="제출">
     </form>
-    <a href="{% url 'boards:update' board.pk %}">[수정하기]</a>
-    <a href="{% url 'boards:index' %}">[뒤로가기]</a>
+    {% else %}
+    <p>댓글을 작성하려면 <a href="{% url 'accounts:login' %}">로그인</a>해주세요</p>
+    {% endif %}
+    <hr/>
+
+    <!--요청을 보내는 유저가 게시글의 유저일때만-->
+    {% if user == board.user %}
+    <form class="d-inline" action="{% url 'boards:delete' board.pk %}" method="post">
+        {% csrf_token %}
+        <input class="btn btn-danger" type="submit" value="삭제하기">
+    </form>
+    <a class="btn btn-warning" href="{% url 'boards:update' board.pk %}">수정하기</a>
+    {% endif %}
+    <a class="btn btn-secondary" href="{% url 'boards:index' %}">뒤로가기</a>
 {% endblock %}

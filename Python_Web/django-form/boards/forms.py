@@ -1,5 +1,5 @@
 from django import forms
-from .models import Board
+from .models import Board, Comment
 
 # class BoardForm(forms.Form):
 #     title = forms.CharField(
@@ -47,7 +47,15 @@ class BoardForm(forms.ModelForm):
             }
         )
     )
+
     # 어느 model로 form을 만들지 지정해줘야함
     class Meta:
-        model =  Board
+        model = Board
         fields = ('title', 'content', )
+
+
+class CommentForm(forms.ModelForm):
+    content = forms.CharField(label=False)
+    class Meta:
+        model = Comment
+        fields = ('content', )
