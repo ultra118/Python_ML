@@ -654,3 +654,411 @@ user.like_boards.all()
 </a>
 ```
 
+## user model 커스터마이징
+
+- `accounts/models.py`
+
+```python
+from django.db import models
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
+
+# Create your models here.
+
+
+class User(AbstractUser):
+    followers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='foolowings',
+    )
+```
+
+- `django_form/settings.py`
+
+```python
+AUTH_USER_MODEL = 'accounts.User'
+```
+
+- `db.sqlite3`삭제하고
+  - migrate 작업
+    - python manage.py migrations
+    - python manage.py migrate
+
+### django에서 만들어둔 UserAdmin을 admin에 등록
+
+- `accounts/admin.py`
+
+```python
+from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from .models import User
+# Register your models here.
+
+
+admin.site.register(User, UserAdmin)
+```
+
+- django가 기본적으로 제공하는 form에서 
+
+### settings.py의 user model 셋팅
+
+- `django_form/settings.py`
+
+```python
+# settings.AUTH_USER_MODEL
+AUTH_USER_MODEL = 'accounts.User'
+```
+
+- `accounts/forms.py`에 추가해줌
+
+```python
+class CustomUserCreationForm(UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = get_user_model() # settings.AUTH_USER_MODEL => accounts.User
+        fields = UserCreationForm.Meta.fields
+        
+```
+
+- `accounts/views.py`수정
+  - form에서 CustomUserCreationFormd을 추가해줌
+    - 사용자가 커스터마이징시킨 user model 사용
+    - `UserCreationForm`을 `CustomUserCreationForm`로 변경
+
+```python
+from django.shortcuts import render, redirect
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, PasswordChangeForm
+from django.contrib.auth import login as auth_login, logout as auth_logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST, require_GET, require_http_methods
+from .forms import CustomUserChangeForm, CustomUserCreationForm
+
+# Create your views here.
+
+@require_http_methods(['GET', 'POST'])
+def signup(request):
+    if request.user.is_authenticated:
+        return redirect('boards:index')
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            # user = form.get_user()
+            auth_login(request, user)
+            return redirect('boards:index')
+    else:
+        form = CustomUserCreationForm()
+    context = {'form': form}
+    return render(request, 'accounts/signup.html', context)
+
+
+@require_http_methods(['GET', 'POST'])
+def login(request):
+    # 로그인이 되어있으면 index로 보냄
+    if request.user.is_authenticated:
+        return redirect('boards:index')
+    if request.method == 'POST':
+        form = AuthenticationForm(request, request.POST)
+        #  사용자 입력 유효성 검사
+        if form.is_valid():
+            #  로그인
+            # request, 사용자
+            auth_login(request, form.get_user())
+            return redirect(request.GET.get('next') or 'boards:index')
+    else:  # GET /accounts/login/ -> html 페이지만 렌더링
+        form = AuthenticationForm()
+    context = {'form': form}
+    return render(request, 'accounts/login.html', context)
+
+
+@require_GET
+def logout(request):
+    # 로그아웃 로직
+    auth_logout(request)
+    return redirect('boards:index')
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def update(request):
+    if not request.user.is_authenticated:
+        return redirect('boards:index')
+    if request.method == 'POST':
+        form = CustomUserChangeForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('boards:index')
+    else:
+        # 사용자 정보를 instance에 넣어줌
+        form = CustomUserChangeForm(instance=request.user)
+    # GET으로 들어와도 사용하고, valid가 안될때도 사용할 수 있게
+    context = {'form': form}
+    return render(request, 'accounts/update.html', context)
+
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def change_password(request):
+    if request.method == 'POST':
+        # 비밀번호 변경로직
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            form.save()
+            # 세션의 정보와 회원의 정보가 달라져서 session을 유지한 상태로 새롭게 업데이트
+            update_session_auth_hash(request, request.user)
+            return redirect('board:index')
+    else:
+        form = PasswordChangeForm(request.user)
+    context = {'form': form}
+    return render(request, 'accounts/change_password.html', context)
+
+
+@require_POST
+def delete(request):
+    # 유저 삭제 로직
+    request.user.delete()
+    return redirect('boards:index')
+
+```
+
+### follow 기능 추가
+
+- `boards/urls.py`
+- 특정 유저를 팔로우하는 것이기 때문에 팔로우되는 사용자가 어떤 사용자인지 알고 있어야 함 
+- 팔로우는 
+
+```python
+from django.urls import path
+from . import views
+
+app_name = 'boards'
+
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('<int:board_pk>/', views.detail, name='detail'), # boards/3/
+    path('create/', views.create, name='create'),
+    path('<int:board_pk>/delete/', views.delete, name='delete'), # boards/3/delete/
+    path('<int:board_pk>/update/', views.update, name='update'),
+    # comments
+    # POST /boards/3/comments
+    path('<int:board_pk>/comments/', views.comments_create, name='comments_create'),
+    path('<int:board_pk>/comments/<int:comment_pk>/delete', views.comments_delete, name='comments_delete'),
+
+    #like
+    path('<int:board_pk>/like/', views.like, name='like'),
+
+    # follow
+    path('<int:board_pk>/follow/<int:user_pk>/', views.follow, name='follow') # /boards/3/follow/1
+]
+```
+
+### follow 추가
+
+```python
+from django.shortcuts import render, redirect, get_object_or_404
+from django.views.decorators.http import require_POST, require_GET, require_http_methods
+from django.contrib.auth.decorators import login_required
+from .models import Board, Comment
+from .forms import BoardForm, CommentForm
+from IPython import embed
+
+# Create your views here.
+...
+
+@require_GET
+def detail(request, board_pk):
+    # object가 있으면 가져오고 없으면 404페이지
+    # 어떤 모델에서 꺼내올 건지, 어떤 값을 꺼내올건지
+    board = get_object_or_404(Board, pk=board_pk)
+    # Board를 참조하고 있는 모든 댓글
+    comments = board.comment_set.order_by('-pk')
+    comment_form = CommentForm()
+    person = get_object_or_404(get_user_model(), pk=board.user_id)
+    context = {
+        'board': board,
+        'comment_form': comment_form,
+        'comments': comments,
+        'person': person,
+    }
+    return render(request, 'boards/detail.html', context)
+
+
+@login_required()
+def follow(request, board_pk, user_pk):
+    user = request.user
+    person = get_object_or_404(get_user_model(), pk=user_pk)
+
+    # 자기 자신을 팔로우하는 경우를 막기위함
+    if user != person:
+        # person의 팔로워 목록에 user가 있으면 제거
+        if user in person.followers.all():
+            person.followers.remove(user)
+
+        # 없으면 팔로우
+        else:
+            person.followers.add(user)
+
+    return redirect('boards:detail', board_pk)
+
+```
+
+
+
+### html 이식하기
+
+- `tempaltes/boards/_profile.py`
+
+```html
+<div class="jumbotron text-center">
+    <p class="lead mb-1">작성자 정보</p>
+    <h1 class="display-4">{{ board.user }}</h1>
+    <hr/>
+    {% if person != user %}
+    <p class="lead">
+        팔로잉 : {{  person.followings.all | length }}/ 팔로워 : {{ person.followers.all | length }}
+    </p>
+    <a href="{% url 'boards:follow' board.pk board.user_id %}" class="btn btn-primary btn-lg">
+        {% if user in person.followers.all %}
+        Unfollow
+        {% else %}
+        Follow
+        {% endif %}
+    </a>
+    {% endif %}
+</div>
+```
+
+- `templates/boards/detail.html`에 `include`
+
+```html
+{% extends 'boards/base.html' %}
+{% load bootstrap4 %}
+
+{% block body %}
+    <h1>Detail</h1>
+    <hr/>
+    {% include 'boards/_profile.html' %}
+    <p>글 번호 : {{ board.pk }}</p>
+    <p>글 제목 : {{ board.title }}</p>
+...
+```
+
+# [카카오 연동](<https://django-allauth.readthedocs.io/en/latest/installation.html>)
+
+- `pip install django-allauth`
+
+- `django_form/settings.py`
+
+```python
+
+import os
+
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+# Quick-start development settings - unsuitable for production
+# See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'he425%jn&=_s79-+7s=g7=uf35xg=daf6v2ysw9#u5i1xnge7)'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = True
+
+ALLOWED_HOSTS = []
+
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
+
+
+# Application definition
+
+INSTALLED_APPS = [
+    'boards',
+    'accounts',
+
+    # 3rd party apps
+    'bootstrap4',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.kakao',
+
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django.contrib.sites', #추가
+]
+
+SITE_ID = 1
+
+...
+
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/2.2/howto/static-files/
+
+STATIC_URL = '/static/'
+
+# settings.AUTH_USER_MODEL
+AUTH_USER_MODEL = 'accounts.User'
+
+LOGIN_REDIRECT_URL = 'boards:index'
+```
+
+- `django_form/ulrs.py`
+
+```python
+
+from django.contrib import admin
+from django.urls import path, include
+
+urlpatterns = [
+    path('accounts/', include('accounts.urls')),
+    path('accounts/', include('allauth.urls')),
+    path('boards/', include('boards.urls')),
+    path('admin/', admin.site.urls),
+]
+
+```
+
+- migrate를 해주고
+- [카카오 developers](<https://developers.kakao.com/apps/321469/settings/general>)
+  - 일반 탭의 REST API를 db에 등록할 거임
+    - 웹의 사이트 도매인과 Redirect Path 등록
+      - http://127.0.0.1:8000, https://127.0.0.1:8000
+      - /accounts/kakao/login/callback/
+  - 사용자 관리의 profile, account_email(이용중 사용)
+  - 고급탭의 사용 누르도록 함
+- `accounts.py`에 카카오톡 로그인 추가
+
+- admin에 접속해서 소셜 어플리케이션 추가
+  - 제공자 : kakao
+  - 이름은 맘대로
+  - 클라이언트 아이디 : REST API의 key
+  - 비밀 키 : 고급설정에서 활성화 했을 떄 key
+
+- `accounts/login.html`에 카카오톡 로그인 추가
+
+```html
+{% extends 'boards/base.html' %}
+{% load bootstrap4 %}
+{% load socialaccount %}
+
+{% block body %}
+<h1>로그인</h1>
+<form action="" method="post">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    {% buttons submit="로그인" reset="Cancel" %}{% endbuttons %}
+</form>
+<a href="{% provider_login_url 'kakao' method='oauth2' %}" class="btn btn-warning">카카오톡 로그인</a>
+{% endblock %}
+```
+
+### 회원가입 에러에대한 이슈
+

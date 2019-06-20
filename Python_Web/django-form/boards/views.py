@@ -3,6 +3,7 @@ from django.views.decorators.http import require_POST, require_GET, require_http
 from django.contrib.auth.decorators import login_required
 from .models import Board, Comment
 from .forms import BoardForm, CommentForm
+from django.contrib.auth import get_user_model
 from IPython import embed
 
 # Create your views here.
@@ -48,10 +49,12 @@ def detail(request, board_pk):
     # Board를 참조하고 있는 모든 댓글
     comments = board.comment_set.order_by('-pk')
     comment_form = CommentForm()
+    person = get_object_or_404(get_user_model(), pk=board.user_id)
     context = {
         'board': board,
         'comment_form': comment_form,
-        'comments': comments
+        'comments': comments,
+        'person': person,
     }
     return render(request, 'boards/detail.html', context)
 
@@ -130,6 +133,7 @@ def comments_delete(request, board_pk, comment_pk):
     return redirect('boards:detail', board_pk)
 
 
+@login_required()
 def like(request, board_pk):
     board = get_object_or_404(Board, pk=board_pk)
     user = request.user
@@ -142,5 +146,23 @@ def like(request, board_pk):
     else:
         # 좋아요
         board.like_users.add(user)
+
+    return redirect('boards:detail', board_pk)
+
+
+@login_required()
+def follow(request, board_pk, user_pk):
+    user = request.user
+    person = get_object_or_404(get_user_model(), pk=user_pk)
+
+    # 자기 자신을 팔로우하는 경우를 막기위함
+    if user != person:
+        # person의 팔로워 목록에 user가 있으면 제거
+        if user in person.followers.all():
+            person.followers.remove(user)
+
+        # 없으면 팔로우
+        else:
+            person.followers.add(user)
 
     return redirect('boards:detail', board_pk)

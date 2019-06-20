@@ -16,5 +16,8 @@ urlpatterns = [
 
     #like
     path('<int:board_pk>/like/', views.like, name='like'),
+
+    # follow
+    path('<int:board_pk>/follow/<int:user_pk>/', views.follow, name='follow') # /boards/3/follow/1
 ]
 

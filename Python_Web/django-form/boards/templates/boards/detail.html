@@ -4,6 +4,7 @@
 {% block body %}
     <h1>Detail</h1>
     <hr/>
+    {% include 'boards/_profile.html' %}
     <p>글 번호 : {{ board.pk }}</p>
     <p>글 제목 : {{ board.title }}</p>
     <p>글 내용 : {{ board.content }}</p>
